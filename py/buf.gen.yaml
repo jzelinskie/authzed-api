@@ -1,0 +1,11 @@
+---
+version: "v2"
+plugins:
+  - protoc_builtin: "python"
+    out: "."
+  - local: "grpc_python_plugin"
+    out: "."
+  - local: "protoc-gen-mypy"
+    out: "."
+  - local: "protoc-gen-mypy_grpc"
+    out: "."

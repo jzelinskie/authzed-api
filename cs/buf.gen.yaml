@@ -1,0 +1,14 @@
+---
+version: "v2"
+plugins:
+  - remote: "buf.build/protocolbuffers/csharp"
+    out: "src"
+    opt: "base_namespace=Authzed.Api"
+  - local: "grpc_csharp_plugin"
+    out: "src"
+    opt: "base_namespace=Authzed.Api"
+# managed:
+#   enabled: true
+#   disable:
+#     - module: "buf.build/googleapis/googleapis"
+#     - file_option: csharp_namespace
