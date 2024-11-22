@@ -519,6 +519,24 @@ export enum ErrorReason {
    * @generated from enum value: ERROR_REASON_WILDCARD_NOT_ALLOWED = 28;
    */
   WILDCARD_NOT_ALLOWED = 28,
+
+  /**
+   * The request failed because the transaction metadata was too large.
+   *
+   * Example of an ErrorInfo:
+   *
+   *     {
+   *       "reason": "ERROR_REASON_TRANSACTION_METADATA_TOO_LARGE",
+   *       "domain": "authzed.com",
+   *       "metadata": {
+   *         "metadata_byte_size": "1024",
+   *         "maximum_allowed_metadata_byte_size": "512",
+   *       }
+   *     }
+   *
+   * @generated from enum value: ERROR_REASON_TRANSACTION_METADATA_TOO_LARGE = 29;
+   */
+  TRANSACTION_METADATA_TOO_LARGE = 29,
 }
 // Retrieve enum metadata with: proto3.getEnumType(ErrorReason)
 proto3.util.setEnumType(ErrorReason, "authzed.api.v1.ErrorReason", [
@@ -551,5 +569,6 @@ proto3.util.setEnumType(ErrorReason, "authzed.api.v1.ErrorReason", [
   { no: 26, name: "ERROR_REASON_COUNTER_ALREADY_REGISTERED" },
   { no: 27, name: "ERROR_REASON_COUNTER_NOT_REGISTERED" },
   { no: 28, name: "ERROR_REASON_WILDCARD_NOT_ALLOWED" },
+  { no: 29, name: "ERROR_REASON_TRANSACTION_METADATA_TOO_LARGE" },
 ]);
 

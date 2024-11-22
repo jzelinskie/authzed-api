@@ -348,7 +348,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "BulkImportRelationshipsRequest represents one batch of the streaming\nBulkImportRelationships API. The maximum size is only limited by the backing\ndatastore, and optimal size should be determined by the calling client\nexperimentally. (streaming inputs)",
+            "description": "BulkImportRelationshipsRequest represents one batch of the streaming\nBulkImportRelationships API. The maximum size is only limited by the backing\ndatastore, and optimal size should be determined by the calling client\nexperimentally. When BulkImport is invoked and receives its first request message,\na transaction is opened to import the relationships. All requests sent to the same\ninvocation are executed under this single transaction. If a relationship already\nexists within the datastore, the entire transaction will fail with an error. (streaming inputs)",
             "in": "body",
             "required": true,
             "schema": {
@@ -616,6 +616,83 @@
         ]
       }
     },
+    "/v1/relationships/exportbulk": {
+      "post": {
+        "summary": "ExportBulkRelationships is the fastest path available to exporting\nrelationships from the server. It is resumable, and will return results\nin an order determined by the server.",
+        "operationId": "PermissionsService_ExportBulkRelationships",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v1ExportBulkRelationshipsResponse"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v1ExportBulkRelationshipsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ExportBulkRelationshipsRequest represents a resumable request for\nall relationships from the server.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ExportBulkRelationshipsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PermissionsService"
+        ]
+      }
+    },
+    "/v1/relationships/importbulk": {
+      "post": {
+        "summary": "ImportBulkRelationships is a faster path to writing a large number of\nrelationships at once. It is both batched and streaming. For maximum\nperformance, the caller should attempt to write relationships in as close\nto relationship sort order as possible: (resource.object_type,\nresource.object_id, relation, subject.object.object_type,\nsubject.object.object_id, subject.optional_relation). All relationships\nwritten are done so under a single transaction.",
+        "operationId": "PermissionsService_ImportBulkRelationships",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ImportBulkRelationshipsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ImportBulkRelationshipsRequest represents one batch of the streaming\nImportBulkRelationships API. The maximum size is only limited by the backing\ndatastore, and optimal size should be determined by the calling client\nexperimentally. When ImportBulk is invoked and receives its first request message,\na transaction is opened to import the relationships. All requests sent to the same\ninvocation are executed under this single transaction. If a relationship already\nexists within the datastore, the entire transaction will fail with an error. (streaming inputs)",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ImportBulkRelationshipsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PermissionsService"
+        ]
+      }
+    },
     "/v1/relationships/read": {
       "post": {
         "summary": "ReadRelationships reads a set of the relationships matching one or more\nfilters.",
@@ -680,7 +757,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "WriteRelationshipsRequest contains a list of Relationship mutations that\nshould be applied to the service. If the optional_preconditions parameter\nis included, all of the specified preconditions must also be satisfied before\nthe write will be committed.",
+            "description": "WriteRelationshipsRequest contains a list of Relationship mutations that\nshould be applied to the service. If the optional_preconditions parameter\nis included, all of the specified preconditions must also be satisfied before\nthe write will be committed. All updates will be applied transactionally,\nand if any preconditions fail, the entire transaction will be reverted.",
             "in": "body",
             "required": true,
             "schema": {
@@ -1056,6 +1133,10 @@
         "completedMembers": {
           "type": "boolean",
           "title": "completed_members is a boolean flag that indicates that the cursor has reached the end of the permission sets"
+        },
+        "startingKey": {
+          "type": "string",
+          "description": "starting_key is a string cursor used by some backends to resume the stream from a specific point."
         }
       }
     },
@@ -1100,6 +1181,16 @@
         }
       },
       "description": "The `Status` type defines a logical error model that is suitable for\ndifferent programming environments, including REST APIs and RPC APIs. It is\nused by [gRPC](https://github.com/grpc). Each `Status` message contains\nthree pieces of data: error code, error message, and error details.\n\nYou can find out more about this error model and how to work with it in the\n[API Design Guide](https://cloud.google.com/apis/design/errors)."
+    },
+    "v0BreakingSchemaChange": {
+      "type": "object",
+      "properties": {
+        "changeAt": {
+          "$ref": "#/definitions/v1ZedToken",
+          "description": "change_at is the revision at which a breaking schema event has happened."
+        }
+      },
+      "description": "BreakingSchemaChange is used to signal a breaking schema change has happened, and that the consumer should\nexpect delays in the ingestion of new changes, because the permission set snapshot needs to be rebuilt from scratch.\nOnce the snapshot is ready, the consumer will receive a LookupPermissionSetsRequired event."
     },
     "v0DeveloperError": {
       "type": "object",
@@ -1185,7 +1276,7 @@
           "description": "required_lookup_at is the snapshot revision at which the permission set needs to be rebuilt to."
         }
       },
-      "description": "LookupPermissionSetsRequired is a signal that the consumer should perform a LookupPermissionSets call because\nthe permission set snapshot needs to be rebuilt from scratch. This typically happens when the origin SpiceDB\ncluster has seen its schema changed."
+      "description": "LookupPermissionSetsRequired is a signal that the consumer should perform a LookupPermissionSets call because\nthe permission set snapshot needs to be rebuilt from scratch. This typically happens when the origin SpiceDB\ncluster has seen its schema changed, see BreakingSchemaChange event."
     },
     "v0LookupPermissionSetsResponse": {
       "type": "object",
@@ -1418,6 +1509,10 @@
         "lookupPermissionSetsRequired": {
           "$ref": "#/definitions/v0LookupPermissionSetsRequired",
           "description": "lookup_permission_sets_required is a signal that the consumer should perform a LookupPermissionSets call because\nthe permission set snapshot needs to be rebuilt from scratch. This typically happens when the origin SpiceDB\ncluster has seen its schema changed."
+        },
+        "breakingSchemaChange": {
+          "$ref": "#/definitions/v0BreakingSchemaChange",
+          "description": "breaking_schema_change is a signal that a breaking schema change has been written to the origin SpiceDB cluster,\nand that the consumer should expect delays in the ingestion of new changes,\nbecause the permission set snapshot needs to be rebuilt from scratch. Once the snapshot is ready, the consumer\nwill receive a LookupPermissionSetsRequired event."
         }
       }
     },
@@ -1603,7 +1698,7 @@
           }
         }
       },
-      "description": "BulkImportRelationshipsRequest represents one batch of the streaming\nBulkImportRelationships API. The maximum size is only limited by the backing\ndatastore, and optimal size should be determined by the calling client\nexperimentally."
+      "description": "BulkImportRelationshipsRequest represents one batch of the streaming\nBulkImportRelationships API. The maximum size is only limited by the backing\ndatastore, and optimal size should be determined by the calling client\nexperimentally. When BulkImport is invoked and receives its first request message,\na transaction is opened to import the relationships. All requests sent to the same\ninvocation are executed under this single transaction. If a relationship already\nexists within the datastore, the entire transaction will fail with an error."
     },
     "v1BulkImportRelationshipsResponse": {
       "type": "object",
@@ -1897,6 +1992,10 @@
         "optionalAllowPartialDeletions": {
           "type": "boolean",
           "description": "optional_allow_partial_deletions, if true and a limit is specified, will delete matching found\nrelationships up to the count specified in optional_limit, and no more."
+        },
+        "optionalTransactionMetadata": {
+          "type": "object",
+          "description": "optional_transaction_metadata is an optional field that can be used to store metadata about the transaction.\nIf specified, this metadata will be supplied in the WatchResponse for the deletions associated with\nthis transaction."
         }
       },
       "description": "DeleteRelationshipsRequest specifies which Relationships should be deleted,\nrequesting the delete of *ALL* relationships that match the specified\nfilters. If the optional_preconditions parameter is included, all of the\nspecified preconditions must also be satisfied before the delete will be\nexecuted."
@@ -2390,6 +2489,67 @@
     "v1ExperimentalUnregisterRelationshipCounterResponse": {
       "type": "object"
     },
+    "v1ExportBulkRelationshipsRequest": {
+      "type": "object",
+      "properties": {
+        "consistency": {
+          "$ref": "#/definitions/v1Consistency"
+        },
+        "optionalLimit": {
+          "type": "integer",
+          "format": "int64",
+          "description": "optional_limit, if non-zero, specifies the limit on the number of\nrelationships the server can return in one page. By default, the server\nwill pick a page size, and the server is free to choose a smaller size\nat will."
+        },
+        "optionalCursor": {
+          "$ref": "#/definitions/apiv1Cursor",
+          "description": "optional_cursor, if specified, indicates the cursor after which results\nshould resume being returned. The cursor can be found on the\nBulkExportRelationshipsResponse object."
+        },
+        "optionalRelationshipFilter": {
+          "$ref": "#/definitions/v1RelationshipFilter",
+          "description": "optional_relationship_filter, if specified, indicates the\nfilter to apply to each relationship to be exported."
+        }
+      },
+      "description": "ExportBulkRelationshipsRequest represents a resumable request for\nall relationships from the server."
+    },
+    "v1ExportBulkRelationshipsResponse": {
+      "type": "object",
+      "properties": {
+        "afterResultCursor": {
+          "$ref": "#/definitions/apiv1Cursor"
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Relationship"
+          }
+        }
+      },
+      "description": "ExportBulkRelationshipsResponse is one page in a stream of relationship\ngroups that meet the criteria specified by the originating request. The\nserver will continue to stream back relationship groups as quickly as it can\nuntil all relationships have been transmitted back."
+    },
+    "v1ImportBulkRelationshipsRequest": {
+      "type": "object",
+      "properties": {
+        "relationships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Relationship"
+          }
+        }
+      },
+      "description": "ImportBulkRelationshipsRequest represents one batch of the streaming\nImportBulkRelationships API. The maximum size is only limited by the backing\ndatastore, and optimal size should be determined by the calling client\nexperimentally. When ImportBulk is invoked and receives its first request message,\na transaction is opened to import the relationships. All requests sent to the same\ninvocation are executed under this single transaction. If a relationship already\nexists within the datastore, the entire transaction will fail with an error."
+    },
+    "v1ImportBulkRelationshipsResponse": {
+      "type": "object",
+      "properties": {
+        "numLoaded": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "description": "ImportBulkRelationshipsResponse is returned on successful completion of the\nbulk load stream, and contains the total number of relationships loaded."
+    },
     "v1LookupPermissionship": {
       "type": "string",
       "enum": [
@@ -2812,10 +2972,16 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1RelationshipUpdate"
-          }
+          },
+          "description": "updates are the RelationshipUpdate events that have occurred since the\nlast watch response."
         },
         "changesThrough": {
-          "$ref": "#/definitions/v1ZedToken"
+          "$ref": "#/definitions/v1ZedToken",
+          "description": "changes_through is the ZedToken that represents the point in time\nthat the watch response is current through. This token can be used\nin a subsequent WatchRequest to resume watching from this point."
+        },
+        "optionalTransactionMetadata": {
+          "type": "object",
+          "description": "optional_transaction_metadata is an optional field that returns the transaction metadata\ngiven to SpiceDB during the transaction that produced the changes in this response.\nThis field may not exist if no transaction metadata was provided."
         }
       },
       "description": "WatchResponse contains all tuple modification events in ascending\ntimestamp order, from the requested start snapshot to a snapshot\nencoded in the watch response. The client can use the snapshot to resume\nwatching where the previous watch response left off."
@@ -2837,9 +3003,13 @@
             "$ref": "#/definitions/v1Precondition"
           },
           "title": "To be bounded by configuration"
+        },
+        "optionalTransactionMetadata": {
+          "type": "object",
+          "description": "optional_transaction_metadata is an optional field that can be used to store metadata about the transaction.\nIf specified, this metadata will be supplied in the WatchResponse for the updates associated with this\ntransaction."
         }
       },
-      "description": "WriteRelationshipsRequest contains a list of Relationship mutations that\nshould be applied to the service. If the optional_preconditions parameter\nis included, all of the specified preconditions must also be satisfied before\nthe write will be committed."
+      "description": "WriteRelationshipsRequest contains a list of Relationship mutations that\nshould be applied to the service. If the optional_preconditions parameter\nis included, all of the specified preconditions must also be satisfied before\nthe write will be committed. All updates will be applied transactionally,\nand if any preconditions fail, the entire transaction will be reverted."
     },
     "v1WriteRelationshipsResponse": {
       "type": "object",
@@ -2933,10 +3103,16 @@
   "securityDefinitions": {
     "ApiKeyAuth": {
       "type": "apiKey",
+      "description": "SpiceDB preshared-key, prefixed by Bearer: Bearer \u003cpreshared-key\u003e",
       "name": "Authorization",
       "in": "header"
     }
   },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
   "externalDocs": {
     "description": "More about the Authzed API.",
     "url": "https://docs.authzed.com/reference/api"

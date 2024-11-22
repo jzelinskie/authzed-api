@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	PermissionsService_ReadRelationships_FullMethodName    = "/authzed.api.v1.PermissionsService/ReadRelationships"
-	PermissionsService_WriteRelationships_FullMethodName   = "/authzed.api.v1.PermissionsService/WriteRelationships"
-	PermissionsService_DeleteRelationships_FullMethodName  = "/authzed.api.v1.PermissionsService/DeleteRelationships"
-	PermissionsService_CheckPermission_FullMethodName      = "/authzed.api.v1.PermissionsService/CheckPermission"
-	PermissionsService_CheckBulkPermissions_FullMethodName = "/authzed.api.v1.PermissionsService/CheckBulkPermissions"
-	PermissionsService_ExpandPermissionTree_FullMethodName = "/authzed.api.v1.PermissionsService/ExpandPermissionTree"
-	PermissionsService_LookupResources_FullMethodName      = "/authzed.api.v1.PermissionsService/LookupResources"
-	PermissionsService_LookupSubjects_FullMethodName       = "/authzed.api.v1.PermissionsService/LookupSubjects"
+	PermissionsService_ReadRelationships_FullMethodName       = "/authzed.api.v1.PermissionsService/ReadRelationships"
+	PermissionsService_WriteRelationships_FullMethodName      = "/authzed.api.v1.PermissionsService/WriteRelationships"
+	PermissionsService_DeleteRelationships_FullMethodName     = "/authzed.api.v1.PermissionsService/DeleteRelationships"
+	PermissionsService_CheckPermission_FullMethodName         = "/authzed.api.v1.PermissionsService/CheckPermission"
+	PermissionsService_CheckBulkPermissions_FullMethodName    = "/authzed.api.v1.PermissionsService/CheckBulkPermissions"
+	PermissionsService_ExpandPermissionTree_FullMethodName    = "/authzed.api.v1.PermissionsService/ExpandPermissionTree"
+	PermissionsService_LookupResources_FullMethodName         = "/authzed.api.v1.PermissionsService/LookupResources"
+	PermissionsService_LookupSubjects_FullMethodName          = "/authzed.api.v1.PermissionsService/LookupSubjects"
+	PermissionsService_ImportBulkRelationships_FullMethodName = "/authzed.api.v1.PermissionsService/ImportBulkRelationships"
+	PermissionsService_ExportBulkRelationships_FullMethodName = "/authzed.api.v1.PermissionsService/ExportBulkRelationships"
 )
 
 // PermissionsServiceClient is the client API for PermissionsService service.
@@ -64,6 +66,18 @@ type PermissionsServiceClient interface {
 	// LookupSubjects returns all the subjects of a given type that
 	// have access whether via a computed permission or relation membership.
 	LookupSubjects(ctx context.Context, in *LookupSubjectsRequest, opts ...grpc.CallOption) (PermissionsService_LookupSubjectsClient, error)
+	// ImportBulkRelationships is a faster path to writing a large number of
+	// relationships at once. It is both batched and streaming. For maximum
+	// performance, the caller should attempt to write relationships in as close
+	// to relationship sort order as possible: (resource.object_type,
+	// resource.object_id, relation, subject.object.object_type,
+	// subject.object.object_id, subject.optional_relation). All relationships
+	// written are done so under a single transaction.
+	ImportBulkRelationships(ctx context.Context, opts ...grpc.CallOption) (PermissionsService_ImportBulkRelationshipsClient, error)
+	// ExportBulkRelationships is the fastest path available to exporting
+	// relationships from the server. It is resumable, and will return results
+	// in an order determined by the server.
+	ExportBulkRelationships(ctx context.Context, in *ExportBulkRelationshipsRequest, opts ...grpc.CallOption) (PermissionsService_ExportBulkRelationshipsClient, error)
 }
 
 type permissionsServiceClient struct {
@@ -223,6 +237,74 @@ func (x *permissionsServiceLookupSubjectsClient) Recv() (*LookupSubjectsResponse
 	return m, nil
 }
 
+func (c *permissionsServiceClient) ImportBulkRelationships(ctx context.Context, opts ...grpc.CallOption) (PermissionsService_ImportBulkRelationshipsClient, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &PermissionsService_ServiceDesc.Streams[3], PermissionsService_ImportBulkRelationships_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &permissionsServiceImportBulkRelationshipsClient{ClientStream: stream}
+	return x, nil
+}
+
+type PermissionsService_ImportBulkRelationshipsClient interface {
+	Send(*ImportBulkRelationshipsRequest) error
+	CloseAndRecv() (*ImportBulkRelationshipsResponse, error)
+	grpc.ClientStream
+}
+
+type permissionsServiceImportBulkRelationshipsClient struct {
+	grpc.ClientStream
+}
+
+func (x *permissionsServiceImportBulkRelationshipsClient) Send(m *ImportBulkRelationshipsRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *permissionsServiceImportBulkRelationshipsClient) CloseAndRecv() (*ImportBulkRelationshipsResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(ImportBulkRelationshipsResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *permissionsServiceClient) ExportBulkRelationships(ctx context.Context, in *ExportBulkRelationshipsRequest, opts ...grpc.CallOption) (PermissionsService_ExportBulkRelationshipsClient, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &PermissionsService_ServiceDesc.Streams[4], PermissionsService_ExportBulkRelationships_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &permissionsServiceExportBulkRelationshipsClient{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type PermissionsService_ExportBulkRelationshipsClient interface {
+	Recv() (*ExportBulkRelationshipsResponse, error)
+	grpc.ClientStream
+}
+
+type permissionsServiceExportBulkRelationshipsClient struct {
+	grpc.ClientStream
+}
+
+func (x *permissionsServiceExportBulkRelationshipsClient) Recv() (*ExportBulkRelationshipsResponse, error) {
+	m := new(ExportBulkRelationshipsResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // PermissionsServiceServer is the server API for PermissionsService service.
 // All implementations must embed UnimplementedPermissionsServiceServer
 // for forward compatibility
@@ -258,6 +340,18 @@ type PermissionsServiceServer interface {
 	// LookupSubjects returns all the subjects of a given type that
 	// have access whether via a computed permission or relation membership.
 	LookupSubjects(*LookupSubjectsRequest, PermissionsService_LookupSubjectsServer) error
+	// ImportBulkRelationships is a faster path to writing a large number of
+	// relationships at once. It is both batched and streaming. For maximum
+	// performance, the caller should attempt to write relationships in as close
+	// to relationship sort order as possible: (resource.object_type,
+	// resource.object_id, relation, subject.object.object_type,
+	// subject.object.object_id, subject.optional_relation). All relationships
+	// written are done so under a single transaction.
+	ImportBulkRelationships(PermissionsService_ImportBulkRelationshipsServer) error
+	// ExportBulkRelationships is the fastest path available to exporting
+	// relationships from the server. It is resumable, and will return results
+	// in an order determined by the server.
+	ExportBulkRelationships(*ExportBulkRelationshipsRequest, PermissionsService_ExportBulkRelationshipsServer) error
 	mustEmbedUnimplementedPermissionsServiceServer()
 }
 
@@ -288,6 +382,12 @@ func (UnimplementedPermissionsServiceServer) LookupResources(*LookupResourcesReq
 }
 func (UnimplementedPermissionsServiceServer) LookupSubjects(*LookupSubjectsRequest, PermissionsService_LookupSubjectsServer) error {
 	return status.Errorf(codes.Unimplemented, "method LookupSubjects not implemented")
+}
+func (UnimplementedPermissionsServiceServer) ImportBulkRelationships(PermissionsService_ImportBulkRelationshipsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ImportBulkRelationships not implemented")
+}
+func (UnimplementedPermissionsServiceServer) ExportBulkRelationships(*ExportBulkRelationshipsRequest, PermissionsService_ExportBulkRelationshipsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ExportBulkRelationships not implemented")
 }
 func (UnimplementedPermissionsServiceServer) mustEmbedUnimplementedPermissionsServiceServer() {}
 
@@ -455,6 +555,53 @@ func (x *permissionsServiceLookupSubjectsServer) Send(m *LookupSubjectsResponse)
 	return x.ServerStream.SendMsg(m)
 }
 
+func _PermissionsService_ImportBulkRelationships_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(PermissionsServiceServer).ImportBulkRelationships(&permissionsServiceImportBulkRelationshipsServer{ServerStream: stream})
+}
+
+type PermissionsService_ImportBulkRelationshipsServer interface {
+	SendAndClose(*ImportBulkRelationshipsResponse) error
+	Recv() (*ImportBulkRelationshipsRequest, error)
+	grpc.ServerStream
+}
+
+type permissionsServiceImportBulkRelationshipsServer struct {
+	grpc.ServerStream
+}
+
+func (x *permissionsServiceImportBulkRelationshipsServer) SendAndClose(m *ImportBulkRelationshipsResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *permissionsServiceImportBulkRelationshipsServer) Recv() (*ImportBulkRelationshipsRequest, error) {
+	m := new(ImportBulkRelationshipsRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _PermissionsService_ExportBulkRelationships_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExportBulkRelationshipsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(PermissionsServiceServer).ExportBulkRelationships(m, &permissionsServiceExportBulkRelationshipsServer{ServerStream: stream})
+}
+
+type PermissionsService_ExportBulkRelationshipsServer interface {
+	Send(*ExportBulkRelationshipsResponse) error
+	grpc.ServerStream
+}
+
+type permissionsServiceExportBulkRelationshipsServer struct {
+	grpc.ServerStream
+}
+
+func (x *permissionsServiceExportBulkRelationshipsServer) Send(m *ExportBulkRelationshipsResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // PermissionsService_ServiceDesc is the grpc.ServiceDesc for PermissionsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -497,6 +644,16 @@ var PermissionsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "LookupSubjects",
 			Handler:       _PermissionsService_LookupSubjects_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ImportBulkRelationships",
+			Handler:       _PermissionsService_ImportBulkRelationships_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "ExportBulkRelationships",
+			Handler:       _PermissionsService_ExportBulkRelationships_Handler,
 			ServerStreams: true,
 		},
 	},

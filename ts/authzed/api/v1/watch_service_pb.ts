@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, Struct } from "@bufbuild/protobuf";
 import { RelationshipUpdate, ZedToken } from "./core_pb.js";
 import { RelationshipFilter } from "./permission_service_pb.js";
 
@@ -89,14 +89,30 @@ export class WatchRequest extends Message<WatchRequest> {
  */
 export class WatchResponse extends Message<WatchResponse> {
   /**
+   * updates are the RelationshipUpdate events that have occurred since the
+   * last watch response.
+   *
    * @generated from field: repeated authzed.api.v1.RelationshipUpdate updates = 1;
    */
   updates: RelationshipUpdate[] = [];
 
   /**
+   * changes_through is the ZedToken that represents the point in time
+   * that the watch response is current through. This token can be used
+   * in a subsequent WatchRequest to resume watching from this point.
+   *
    * @generated from field: authzed.api.v1.ZedToken changes_through = 2;
    */
   changesThrough?: ZedToken;
+
+  /**
+   * optional_transaction_metadata is an optional field that returns the transaction metadata
+   * given to SpiceDB during the transaction that produced the changes in this response.
+   * This field may not exist if no transaction metadata was provided.
+   *
+   * @generated from field: google.protobuf.Struct optional_transaction_metadata = 3;
+   */
+  optionalTransactionMetadata?: Struct;
 
   constructor(data?: PartialMessage<WatchResponse>) {
     super();
@@ -108,6 +124,7 @@ export class WatchResponse extends Message<WatchResponse> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "updates", kind: "message", T: RelationshipUpdate, repeated: true },
     { no: 2, name: "changes_through", kind: "message", T: ZedToken },
+    { no: 3, name: "optional_transaction_metadata", kind: "message", T: Struct },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WatchResponse {

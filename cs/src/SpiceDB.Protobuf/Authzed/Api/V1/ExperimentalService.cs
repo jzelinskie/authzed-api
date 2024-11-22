@@ -3208,7 +3208,10 @@ namespace Authzed.Api.V1 {
   /// BulkImportRelationshipsRequest represents one batch of the streaming
   /// BulkImportRelationships API. The maximum size is only limited by the backing
   /// datastore, and optimal size should be determined by the calling client
-  /// experimentally.
+  /// experimentally. When BulkImport is invoked and receives its first request message,
+  /// a transaction is opened to import the relationships. All requests sent to the same
+  /// invocation are executed under this single transaction. If a relationship already
+  /// exists within the datastore, the entire transaction will fail with an error.
   /// </summary>
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class BulkImportRelationshipsRequest : pb::IMessage<BulkImportRelationshipsRequest>

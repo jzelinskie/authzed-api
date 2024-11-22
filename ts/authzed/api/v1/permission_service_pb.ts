@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Struct } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Struct } from "@bufbuild/protobuf";
 import { Cursor, ObjectReference, PartialCaveatInfo, PermissionRelationshipTree, Relationship, RelationshipUpdate, SubjectReference, ZedToken } from "./core_pb.js";
 import { DebugInformation } from "./debug_pb.js";
 import { Status } from "../../../google/rpc/status_pb.js";
@@ -509,7 +509,8 @@ proto3.util.setEnumType(Precondition_Operation, "authzed.api.v1.Precondition.Ope
  * WriteRelationshipsRequest contains a list of Relationship mutations that
  * should be applied to the service. If the optional_preconditions parameter
  * is included, all of the specified preconditions must also be satisfied before
- * the write will be committed.
+ * the write will be committed. All updates will be applied transactionally,
+ * and if any preconditions fail, the entire transaction will be reverted.
  *
  * @generated from message authzed.api.v1.WriteRelationshipsRequest
  */
@@ -526,6 +527,15 @@ export class WriteRelationshipsRequest extends Message<WriteRelationshipsRequest
    */
   optionalPreconditions: Precondition[] = [];
 
+  /**
+   * optional_transaction_metadata is an optional field that can be used to store metadata about the transaction.
+   * If specified, this metadata will be supplied in the WatchResponse for the updates associated with this
+   * transaction.
+   *
+   * @generated from field: google.protobuf.Struct optional_transaction_metadata = 3;
+   */
+  optionalTransactionMetadata?: Struct;
+
   constructor(data?: PartialMessage<WriteRelationshipsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -536,6 +546,7 @@ export class WriteRelationshipsRequest extends Message<WriteRelationshipsRequest
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "updates", kind: "message", T: RelationshipUpdate, repeated: true },
     { no: 2, name: "optional_preconditions", kind: "message", T: Precondition, repeated: true },
+    { no: 3, name: "optional_transaction_metadata", kind: "message", T: Struct },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WriteRelationshipsRequest {
@@ -633,6 +644,15 @@ export class DeleteRelationshipsRequest extends Message<DeleteRelationshipsReque
    */
   optionalAllowPartialDeletions = false;
 
+  /**
+   * optional_transaction_metadata is an optional field that can be used to store metadata about the transaction.
+   * If specified, this metadata will be supplied in the WatchResponse for the deletions associated with
+   * this transaction.
+   *
+   * @generated from field: google.protobuf.Struct optional_transaction_metadata = 5;
+   */
+  optionalTransactionMetadata?: Struct;
+
   constructor(data?: PartialMessage<DeleteRelationshipsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -645,6 +665,7 @@ export class DeleteRelationshipsRequest extends Message<DeleteRelationshipsReque
     { no: 2, name: "optional_preconditions", kind: "message", T: Precondition, repeated: true },
     { no: 3, name: "optional_limit", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
     { no: 4, name: "optional_allow_partial_deletions", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "optional_transaction_metadata", kind: "message", T: Struct },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteRelationshipsRequest {
@@ -1775,6 +1796,209 @@ export class ResolvedSubject extends Message<ResolvedSubject> {
 
   static equals(a: ResolvedSubject | PlainMessage<ResolvedSubject> | undefined, b: ResolvedSubject | PlainMessage<ResolvedSubject> | undefined): boolean {
     return proto3.util.equals(ResolvedSubject, a, b);
+  }
+}
+
+/**
+ * ImportBulkRelationshipsRequest represents one batch of the streaming
+ * ImportBulkRelationships API. The maximum size is only limited by the backing
+ * datastore, and optimal size should be determined by the calling client
+ * experimentally. When ImportBulk is invoked and receives its first request message,
+ * a transaction is opened to import the relationships. All requests sent to the same
+ * invocation are executed under this single transaction. If a relationship already
+ * exists within the datastore, the entire transaction will fail with an error.
+ *
+ * @generated from message authzed.api.v1.ImportBulkRelationshipsRequest
+ */
+export class ImportBulkRelationshipsRequest extends Message<ImportBulkRelationshipsRequest> {
+  /**
+   * @generated from field: repeated authzed.api.v1.Relationship relationships = 1;
+   */
+  relationships: Relationship[] = [];
+
+  constructor(data?: PartialMessage<ImportBulkRelationshipsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "authzed.api.v1.ImportBulkRelationshipsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "relationships", kind: "message", T: Relationship, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ImportBulkRelationshipsRequest {
+    return new ImportBulkRelationshipsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ImportBulkRelationshipsRequest {
+    return new ImportBulkRelationshipsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ImportBulkRelationshipsRequest {
+    return new ImportBulkRelationshipsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ImportBulkRelationshipsRequest | PlainMessage<ImportBulkRelationshipsRequest> | undefined, b: ImportBulkRelationshipsRequest | PlainMessage<ImportBulkRelationshipsRequest> | undefined): boolean {
+    return proto3.util.equals(ImportBulkRelationshipsRequest, a, b);
+  }
+}
+
+/**
+ * ImportBulkRelationshipsResponse is returned on successful completion of the
+ * bulk load stream, and contains the total number of relationships loaded.
+ *
+ * @generated from message authzed.api.v1.ImportBulkRelationshipsResponse
+ */
+export class ImportBulkRelationshipsResponse extends Message<ImportBulkRelationshipsResponse> {
+  /**
+   * @generated from field: uint64 num_loaded = 1;
+   */
+  numLoaded = protoInt64.zero;
+
+  constructor(data?: PartialMessage<ImportBulkRelationshipsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "authzed.api.v1.ImportBulkRelationshipsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "num_loaded", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ImportBulkRelationshipsResponse {
+    return new ImportBulkRelationshipsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ImportBulkRelationshipsResponse {
+    return new ImportBulkRelationshipsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ImportBulkRelationshipsResponse {
+    return new ImportBulkRelationshipsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ImportBulkRelationshipsResponse | PlainMessage<ImportBulkRelationshipsResponse> | undefined, b: ImportBulkRelationshipsResponse | PlainMessage<ImportBulkRelationshipsResponse> | undefined): boolean {
+    return proto3.util.equals(ImportBulkRelationshipsResponse, a, b);
+  }
+}
+
+/**
+ * ExportBulkRelationshipsRequest represents a resumable request for
+ * all relationships from the server.
+ *
+ * @generated from message authzed.api.v1.ExportBulkRelationshipsRequest
+ */
+export class ExportBulkRelationshipsRequest extends Message<ExportBulkRelationshipsRequest> {
+  /**
+   * @generated from field: authzed.api.v1.Consistency consistency = 1;
+   */
+  consistency?: Consistency;
+
+  /**
+   * optional_limit, if non-zero, specifies the limit on the number of
+   * relationships the server can return in one page. By default, the server
+   * will pick a page size, and the server is free to choose a smaller size
+   * at will.
+   *
+   * @generated from field: uint32 optional_limit = 2;
+   */
+  optionalLimit = 0;
+
+  /**
+   * optional_cursor, if specified, indicates the cursor after which results
+   * should resume being returned. The cursor can be found on the
+   * BulkExportRelationshipsResponse object.
+   *
+   * @generated from field: authzed.api.v1.Cursor optional_cursor = 3;
+   */
+  optionalCursor?: Cursor;
+
+  /**
+   * optional_relationship_filter, if specified, indicates the
+   * filter to apply to each relationship to be exported.
+   *
+   * @generated from field: authzed.api.v1.RelationshipFilter optional_relationship_filter = 4;
+   */
+  optionalRelationshipFilter?: RelationshipFilter;
+
+  constructor(data?: PartialMessage<ExportBulkRelationshipsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "authzed.api.v1.ExportBulkRelationshipsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "consistency", kind: "message", T: Consistency },
+    { no: 2, name: "optional_limit", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 3, name: "optional_cursor", kind: "message", T: Cursor },
+    { no: 4, name: "optional_relationship_filter", kind: "message", T: RelationshipFilter },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExportBulkRelationshipsRequest {
+    return new ExportBulkRelationshipsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExportBulkRelationshipsRequest {
+    return new ExportBulkRelationshipsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExportBulkRelationshipsRequest {
+    return new ExportBulkRelationshipsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ExportBulkRelationshipsRequest | PlainMessage<ExportBulkRelationshipsRequest> | undefined, b: ExportBulkRelationshipsRequest | PlainMessage<ExportBulkRelationshipsRequest> | undefined): boolean {
+    return proto3.util.equals(ExportBulkRelationshipsRequest, a, b);
+  }
+}
+
+/**
+ * ExportBulkRelationshipsResponse is one page in a stream of relationship
+ * groups that meet the criteria specified by the originating request. The
+ * server will continue to stream back relationship groups as quickly as it can
+ * until all relationships have been transmitted back.
+ *
+ * @generated from message authzed.api.v1.ExportBulkRelationshipsResponse
+ */
+export class ExportBulkRelationshipsResponse extends Message<ExportBulkRelationshipsResponse> {
+  /**
+   * @generated from field: authzed.api.v1.Cursor after_result_cursor = 1;
+   */
+  afterResultCursor?: Cursor;
+
+  /**
+   * @generated from field: repeated authzed.api.v1.Relationship relationships = 2;
+   */
+  relationships: Relationship[] = [];
+
+  constructor(data?: PartialMessage<ExportBulkRelationshipsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "authzed.api.v1.ExportBulkRelationshipsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "after_result_cursor", kind: "message", T: Cursor },
+    { no: 2, name: "relationships", kind: "message", T: Relationship, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExportBulkRelationshipsResponse {
+    return new ExportBulkRelationshipsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExportBulkRelationshipsResponse {
+    return new ExportBulkRelationshipsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExportBulkRelationshipsResponse {
+    return new ExportBulkRelationshipsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ExportBulkRelationshipsResponse | PlainMessage<ExportBulkRelationshipsResponse> | undefined, b: ExportBulkRelationshipsResponse | PlainMessage<ExportBulkRelationshipsResponse> | undefined): boolean {
+    return proto3.util.equals(ExportBulkRelationshipsResponse, a, b);
   }
 }
 

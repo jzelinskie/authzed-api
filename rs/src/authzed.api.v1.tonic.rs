@@ -324,6 +324,70 @@ pub mod permissions_service_client {
                 );
             self.inner.server_streaming(req, path, codec).await
         }
+        pub async fn import_bulk_relationships(
+            &mut self,
+            request: impl tonic::IntoStreamingRequest<
+                Message = super::ImportBulkRelationshipsRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::ImportBulkRelationshipsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/authzed.api.v1.PermissionsService/ImportBulkRelationships",
+            );
+            let mut req = request.into_streaming_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "authzed.api.v1.PermissionsService",
+                        "ImportBulkRelationships",
+                    ),
+                );
+            self.inner.client_streaming(req, path, codec).await
+        }
+        pub async fn export_bulk_relationships(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ExportBulkRelationshipsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<
+                tonic::codec::Streaming<super::ExportBulkRelationshipsResponse>,
+            >,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/authzed.api.v1.PermissionsService/ExportBulkRelationships",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "authzed.api.v1.PermissionsService",
+                        "ExportBulkRelationships",
+                    ),
+                );
+            self.inner.server_streaming(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -408,6 +472,31 @@ pub mod permissions_service_server {
             request: tonic::Request<super::LookupSubjectsRequest>,
         ) -> std::result::Result<
             tonic::Response<Self::LookupSubjectsStream>,
+            tonic::Status,
+        >;
+        async fn import_bulk_relationships(
+            &self,
+            request: tonic::Request<
+                tonic::Streaming<super::ImportBulkRelationshipsRequest>,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::ImportBulkRelationshipsResponse>,
+            tonic::Status,
+        >;
+        /// Server streaming response type for the ExportBulkRelationships method.
+        type ExportBulkRelationshipsStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<
+                    super::ExportBulkRelationshipsResponse,
+                    tonic::Status,
+                >,
+            >
+            + Send
+            + 'static;
+        async fn export_bulk_relationships(
+            &self,
+            request: tonic::Request<super::ExportBulkRelationshipsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<Self::ExportBulkRelationshipsStream>,
             tonic::Status,
         >;
     }
@@ -871,6 +960,113 @@ pub mod permissions_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = LookupSubjectsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.server_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/authzed.api.v1.PermissionsService/ImportBulkRelationships" => {
+                    #[allow(non_camel_case_types)]
+                    struct ImportBulkRelationshipsSvc<T: PermissionsService>(pub Arc<T>);
+                    impl<
+                        T: PermissionsService,
+                    > tonic::server::ClientStreamingService<
+                        super::ImportBulkRelationshipsRequest,
+                    > for ImportBulkRelationshipsSvc<T> {
+                        type Response = super::ImportBulkRelationshipsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                tonic::Streaming<super::ImportBulkRelationshipsRequest>,
+                            >,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as PermissionsService>::import_bulk_relationships(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ImportBulkRelationshipsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.client_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/authzed.api.v1.PermissionsService/ExportBulkRelationships" => {
+                    #[allow(non_camel_case_types)]
+                    struct ExportBulkRelationshipsSvc<T: PermissionsService>(pub Arc<T>);
+                    impl<
+                        T: PermissionsService,
+                    > tonic::server::ServerStreamingService<
+                        super::ExportBulkRelationshipsRequest,
+                    > for ExportBulkRelationshipsSvc<T> {
+                        type Response = super::ExportBulkRelationshipsResponse;
+                        type ResponseStream = T::ExportBulkRelationshipsStream;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::ResponseStream>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                super::ExportBulkRelationshipsRequest,
+                            >,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as PermissionsService>::export_bulk_relationships(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ExportBulkRelationshipsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

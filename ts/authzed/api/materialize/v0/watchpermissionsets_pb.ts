@@ -87,6 +87,17 @@ export class WatchPermissionSetsResponse extends Message<WatchPermissionSetsResp
      */
     value: LookupPermissionSetsRequired;
     case: "lookupPermissionSetsRequired";
+  } | {
+    /**
+     * breaking_schema_change is a signal that a breaking schema change has been written to the origin SpiceDB cluster,
+     * and that the consumer should expect delays in the ingestion of new changes,
+     * because the permission set snapshot needs to be rebuilt from scratch. Once the snapshot is ready, the consumer
+     * will receive a LookupPermissionSetsRequired event.
+     *
+     * @generated from field: authzed.api.materialize.v0.BreakingSchemaChange breaking_schema_change = 4;
+     */
+    value: BreakingSchemaChange;
+    case: "breakingSchemaChange";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<WatchPermissionSetsResponse>) {
@@ -100,6 +111,7 @@ export class WatchPermissionSetsResponse extends Message<WatchPermissionSetsResp
     { no: 1, name: "change", kind: "message", T: PermissionSetChange, oneof: "response" },
     { no: 2, name: "completed_revision", kind: "message", T: ZedToken, oneof: "response" },
     { no: 3, name: "lookup_permission_sets_required", kind: "message", T: LookupPermissionSetsRequired, oneof: "response" },
+    { no: 4, name: "breaking_schema_change", kind: "message", T: BreakingSchemaChange, oneof: "response" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WatchPermissionSetsResponse {
@@ -151,6 +163,13 @@ export class Cursor extends Message<Cursor> {
    */
   completedMembers = false;
 
+  /**
+   * starting_key is a string cursor used by some backends to resume the stream from a specific point.
+   *
+   * @generated from field: string starting_key = 7;
+   */
+  startingKey = "";
+
   constructor(data?: PartialMessage<Cursor>) {
     super();
     proto3.util.initPartial(data, this);
@@ -163,6 +182,7 @@ export class Cursor extends Message<Cursor> {
     { no: 4, name: "token", kind: "message", T: ZedToken },
     { no: 5, name: "starting_index", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
     { no: 6, name: "completed_members", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 7, name: "starting_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Cursor {
@@ -196,6 +216,15 @@ export class LookupPermissionSetsRequest extends Message<LookupPermissionSetsReq
   limit = 0;
 
   /**
+   * optional_at_revision specifies the client is requesting to lookup PermissionSets at a specific revision. It's
+   * optional, and if not provided, PermissionSets will be looked up at the current revision. The cursor always
+   * takes precedence in defining the revision when present.
+   *
+   * @generated from field: authzed.api.v1.ZedToken optional_at_revision = 2;
+   */
+  optionalAtRevision?: ZedToken;
+
+  /**
    * optional_starting_after_cursor is used to specify the offset to start streaming permission sets from.
    *
    * @generated from field: authzed.api.materialize.v0.Cursor optional_starting_after_cursor = 4;
@@ -211,6 +240,7 @@ export class LookupPermissionSetsRequest extends Message<LookupPermissionSetsReq
   static readonly typeName = "authzed.api.materialize.v0.LookupPermissionSetsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "limit", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 2, name: "optional_at_revision", kind: "message", T: ZedToken },
     { no: 4, name: "optional_starting_after_cursor", kind: "message", T: Cursor },
   ]);
 
@@ -501,7 +531,7 @@ export class MemberReference extends Message<MemberReference> {
 /**
  * LookupPermissionSetsRequired is a signal that the consumer should perform a LookupPermissionSets call because
  * the permission set snapshot needs to be rebuilt from scratch. This typically happens when the origin SpiceDB
- * cluster has seen its schema changed.
+ * cluster has seen its schema changed, see BreakingSchemaChange event.
  *
  * @generated from message authzed.api.materialize.v0.LookupPermissionSetsRequired
  */
@@ -538,6 +568,49 @@ export class LookupPermissionSetsRequired extends Message<LookupPermissionSetsRe
 
   static equals(a: LookupPermissionSetsRequired | PlainMessage<LookupPermissionSetsRequired> | undefined, b: LookupPermissionSetsRequired | PlainMessage<LookupPermissionSetsRequired> | undefined): boolean {
     return proto3.util.equals(LookupPermissionSetsRequired, a, b);
+  }
+}
+
+/**
+ * BreakingSchemaChange is used to signal a breaking schema change has happened, and that the consumer should
+ * expect delays in the ingestion of new changes, because the permission set snapshot needs to be rebuilt from scratch.
+ * Once the snapshot is ready, the consumer will receive a LookupPermissionSetsRequired event.
+ *
+ * @generated from message authzed.api.materialize.v0.BreakingSchemaChange
+ */
+export class BreakingSchemaChange extends Message<BreakingSchemaChange> {
+  /**
+   * change_at is the revision at which a breaking schema event has happened.
+   *
+   * @generated from field: authzed.api.v1.ZedToken change_at = 1;
+   */
+  changeAt?: ZedToken;
+
+  constructor(data?: PartialMessage<BreakingSchemaChange>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "authzed.api.materialize.v0.BreakingSchemaChange";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "change_at", kind: "message", T: ZedToken },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BreakingSchemaChange {
+    return new BreakingSchemaChange().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BreakingSchemaChange {
+    return new BreakingSchemaChange().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BreakingSchemaChange {
+    return new BreakingSchemaChange().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BreakingSchemaChange | PlainMessage<BreakingSchemaChange> | undefined, b: BreakingSchemaChange | PlainMessage<BreakingSchemaChange> | undefined): boolean {
+    return proto3.util.equals(BreakingSchemaChange, a, b);
   }
 }
 
