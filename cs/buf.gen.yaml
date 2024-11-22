@@ -1,14 +1,13 @@
 ---
 version: "v2"
 plugins:
-  - remote: "buf.build/protocolbuffers/csharp"
-    out: "src"
-    opt: "base_namespace=Authzed.Api"
+  - protoc_builtin: "csharp"
+    out: "src/SpiceDB.Protobuf"
+    include_imports: true
+    opt:
+      - "base_namespace="
   - local: "grpc_csharp_plugin"
-    out: "src"
-    opt: "base_namespace=Authzed.Api"
-# managed:
-#   enabled: true
-#   disable:
-#     - module: "buf.build/googleapis/googleapis"
-#     - file_option: csharp_namespace
+    out: "src/SpiceDB.Protobuf"
+    opt: 
+      - "base_namespace="
+      - "no_server=on"
