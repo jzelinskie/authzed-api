@@ -3,5 +3,5 @@ version: "v2"
 plugins:
   - protoc_builtin: "ruby"
     out: "lib"
-  - local: grpc_ruby_plugin
-    out: lib
+  - local: "grpc_ruby_plugin"
+    out: "lib"
