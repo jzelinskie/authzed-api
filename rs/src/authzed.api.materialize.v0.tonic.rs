@@ -126,7 +126,7 @@ pub mod watch_permissions_service_server {
     #[async_trait]
     pub trait WatchPermissionsService: Send + Sync + 'static {
         /// Server streaming response type for the WatchPermissions method.
-        type WatchPermissionsStream: futures_core::Stream<
+        type WatchPermissionsStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<
                     super::WatchPermissionsResponse,
                     tonic::Status,
@@ -242,7 +242,11 @@ pub mod watch_permissions_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).watch_permissions(request).await
+                                <T as WatchPermissionsService>::watch_permissions(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -471,7 +475,7 @@ pub mod watch_permission_sets_service_server {
     #[async_trait]
     pub trait WatchPermissionSetsService: Send + Sync + 'static {
         /// Server streaming response type for the WatchPermissionSets method.
-        type WatchPermissionSetsStream: futures_core::Stream<
+        type WatchPermissionSetsStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<
                     super::WatchPermissionSetsResponse,
                     tonic::Status,
@@ -487,7 +491,7 @@ pub mod watch_permission_sets_service_server {
             tonic::Status,
         >;
         /// Server streaming response type for the LookupPermissionSets method.
-        type LookupPermissionSetsStream: futures_core::Stream<
+        type LookupPermissionSetsStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<
                     super::LookupPermissionSetsResponse,
                     tonic::Status,
@@ -605,7 +609,11 @@ pub mod watch_permission_sets_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).watch_permission_sets(request).await
+                                <T as WatchPermissionSetsService>::watch_permission_sets(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -655,7 +663,11 @@ pub mod watch_permission_sets_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).lookup_permission_sets(request).await
+                                <T as WatchPermissionSetsService>::lookup_permission_sets(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }

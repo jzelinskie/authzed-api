@@ -1,18 +1,21 @@
----
 version: "v2"
 plugins:
-  - remote: "buf.build/community/neoeinstein-prost:v0.2.3"
+  - local: "protoc-gen-prost"
     out: "src"
     opt:
       - "bytes=."
-      - "file_descriptor_set"
       - "compile_well_known_types"
       - "extern_path=.google.protobuf=::pbjson_types"
-  - remote: "buf.build/community/neoeinstein-prost-serde:v0.2.3"
-    out: "src"
-    opt: [ "extern_path=.google.protobuf=::pbjson_types" ]
-  - remote: "buf.build/community/neoeinstein-tonic:v0.3.0"
+      - "extern_path=.google.rpc=::tonic_types"
+      - "file_descriptor_set"
+  - local: "protoc-gen-tonic"
     out: "src"
     opt:
       - "compile_well_known_types"
       - "extern_path=.google.protobuf=::pbjson_types"
+      - "extern_path=.google.rpc=::tonic_types"
+  - local: "protoc-gen-prost-crate"
+    out: "src"
+    strategy: "all"
+    opt:
+      - "no_features"

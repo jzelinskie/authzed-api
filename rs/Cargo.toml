@@ -1,0 +1,21 @@
+[package]
+name = "spicedb-protobuf"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/mod.rs"
+
+[dependencies]
+prost = "0.13"
+pbjson = "0.7"
+pbjson-types = "0.7"
+tonic = "0.12"
+tonic-types = { version = "0.12" }
+serde = "1.0.215"
+
+[dev-dependencies]
+protoc-gen-prost = "0.3.1"
+protoc-gen-tonic = "0.4.0"
+protoc-gen-prost-crate = "0.4.1"
+

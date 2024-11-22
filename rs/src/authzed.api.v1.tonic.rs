@@ -334,7 +334,7 @@ pub mod permissions_service_server {
     #[async_trait]
     pub trait PermissionsService: Send + Sync + 'static {
         /// Server streaming response type for the ReadRelationships method.
-        type ReadRelationshipsStream: futures_core::Stream<
+        type ReadRelationshipsStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<
                     super::ReadRelationshipsResponse,
                     tonic::Status,
@@ -385,7 +385,7 @@ pub mod permissions_service_server {
             tonic::Status,
         >;
         /// Server streaming response type for the LookupResources method.
-        type LookupResourcesStream: futures_core::Stream<
+        type LookupResourcesStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<super::LookupResourcesResponse, tonic::Status>,
             >
             + Send
@@ -398,7 +398,7 @@ pub mod permissions_service_server {
             tonic::Status,
         >;
         /// Server streaming response type for the LookupSubjects method.
-        type LookupSubjectsStream: futures_core::Stream<
+        type LookupSubjectsStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<super::LookupSubjectsResponse, tonic::Status>,
             >
             + Send
@@ -510,7 +510,11 @@ pub mod permissions_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).read_relationships(request).await
+                                <T as PermissionsService>::read_relationships(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -556,7 +560,11 @@ pub mod permissions_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).write_relationships(request).await
+                                <T as PermissionsService>::write_relationships(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -602,7 +610,11 @@ pub mod permissions_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).delete_relationships(request).await
+                                <T as PermissionsService>::delete_relationships(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -648,7 +660,8 @@ pub mod permissions_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).check_permission(request).await
+                                <T as PermissionsService>::check_permission(&inner, request)
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -694,7 +707,11 @@ pub mod permissions_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).check_bulk_permissions(request).await
+                                <T as PermissionsService>::check_bulk_permissions(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -740,7 +757,11 @@ pub mod permissions_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).expand_permission_tree(request).await
+                                <T as PermissionsService>::expand_permission_tree(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -788,7 +809,8 @@ pub mod permissions_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).lookup_resources(request).await
+                                <T as PermissionsService>::lookup_resources(&inner, request)
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -835,7 +857,8 @@ pub mod permissions_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).lookup_subjects(request).await
+                                <T as PermissionsService>::lookup_subjects(&inner, request)
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -1323,7 +1346,7 @@ pub mod experimental_service_server {
             tonic::Status,
         >;
         /// Server streaming response type for the BulkExportRelationships method.
-        type BulkExportRelationshipsStream: futures_core::Stream<
+        type BulkExportRelationshipsStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<
                     super::BulkExportRelationshipsResponse,
                     tonic::Status,
@@ -1501,7 +1524,11 @@ pub mod experimental_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).bulk_import_relationships(request).await
+                                <T as ExperimentalService>::bulk_import_relationships(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -1553,7 +1580,11 @@ pub mod experimental_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).bulk_export_relationships(request).await
+                                <T as ExperimentalService>::bulk_export_relationships(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -1599,7 +1630,11 @@ pub mod experimental_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).bulk_check_permission(request).await
+                                <T as ExperimentalService>::bulk_check_permission(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -1650,7 +1685,11 @@ pub mod experimental_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).experimental_reflect_schema(request).await
+                                <T as ExperimentalService>::experimental_reflect_schema(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -1701,7 +1740,11 @@ pub mod experimental_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).experimental_computable_permissions(request).await
+                                <T as ExperimentalService>::experimental_computable_permissions(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -1752,7 +1795,11 @@ pub mod experimental_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).experimental_dependent_relations(request).await
+                                <T as ExperimentalService>::experimental_dependent_relations(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -1798,7 +1845,11 @@ pub mod experimental_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).experimental_diff_schema(request).await
+                                <T as ExperimentalService>::experimental_diff_schema(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -1851,8 +1902,10 @@ pub mod experimental_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner)
-                                    .experimental_register_relationship_counter(request)
+                                <T as ExperimentalService>::experimental_register_relationship_counter(
+                                        &inner,
+                                        request,
+                                    )
                                     .await
                             };
                             Box::pin(fut)
@@ -1904,7 +1957,11 @@ pub mod experimental_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).experimental_count_relationships(request).await
+                                <T as ExperimentalService>::experimental_count_relationships(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -1957,8 +2014,10 @@ pub mod experimental_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner)
-                                    .experimental_unregister_relationship_counter(request)
+                                <T as ExperimentalService>::experimental_unregister_relationship_counter(
+                                        &inner,
+                                        request,
+                                    )
                                     .await
                             };
                             Box::pin(fut)
@@ -2284,7 +2343,9 @@ pub mod schema_service_server {
                             request: tonic::Request<super::ReadSchemaRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move { (*inner).read_schema(request).await };
+                            let fut = async move {
+                                <T as SchemaService>::read_schema(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -2329,7 +2390,7 @@ pub mod schema_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).write_schema(request).await
+                                <T as SchemaService>::write_schema(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -2518,7 +2579,7 @@ pub mod watch_service_server {
     #[async_trait]
     pub trait WatchService: Send + Sync + 'static {
         /// Server streaming response type for the Watch method.
-        type WatchStream: futures_core::Stream<
+        type WatchStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<super::WatchResponse, tonic::Status>,
             >
             + Send
@@ -2625,7 +2686,9 @@ pub mod watch_service_server {
                             request: tonic::Request<super::WatchRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move { (*inner).watch(request).await };
+                            let fut = async move {
+                                <T as WatchService>::watch(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }

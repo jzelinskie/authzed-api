@@ -258,7 +258,9 @@ pub mod schema_service_server {
                             request: tonic::Request<super::ReadSchemaRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move { (*inner).read_schema(request).await };
+                            let fut = async move {
+                                <T as SchemaService>::read_schema(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -303,7 +305,7 @@ pub mod schema_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).write_schema(request).await
+                                <T as SchemaService>::write_schema(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -497,7 +499,7 @@ pub mod watch_resources_service_server {
     #[async_trait]
     pub trait WatchResourcesService: Send + Sync + 'static {
         /// Server streaming response type for the WatchResources method.
-        type WatchResourcesStream: futures_core::Stream<
+        type WatchResourcesStream: tonic::codegen::tokio_stream::Stream<
                 Item = std::result::Result<super::WatchResourcesResponse, tonic::Status>,
             >
             + Send
@@ -609,7 +611,11 @@ pub mod watch_resources_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).watch_resources(request).await
+                                <T as WatchResourcesService>::watch_resources(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
                             };
                             Box::pin(fut)
                         }

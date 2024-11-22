@@ -382,7 +382,9 @@ pub mod developer_service_server {
                             request: tonic::Request<super::EditCheckRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move { (*inner).edit_check(request).await };
+                            let fut = async move {
+                                <T as DeveloperService>::edit_check(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -426,7 +428,9 @@ pub mod developer_service_server {
                             request: tonic::Request<super::ValidateRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move { (*inner).validate(request).await };
+                            let fut = async move {
+                                <T as DeveloperService>::validate(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -469,7 +473,9 @@ pub mod developer_service_server {
                             request: tonic::Request<super::ShareRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
-                            let fut = async move { (*inner).share(request).await };
+                            let fut = async move {
+                                <T as DeveloperService>::share(&inner, request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -514,7 +520,8 @@ pub mod developer_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).lookup_shared(request).await
+                                <T as DeveloperService>::lookup_shared(&inner, request)
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -560,7 +567,8 @@ pub mod developer_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).upgrade_schema(request).await
+                                <T as DeveloperService>::upgrade_schema(&inner, request)
+                                    .await
                             };
                             Box::pin(fut)
                         }
@@ -606,7 +614,8 @@ pub mod developer_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                (*inner).format_schema(request).await
+                                <T as DeveloperService>::format_schema(&inner, request)
+                                    .await
                             };
                             Box::pin(fut)
                         }
