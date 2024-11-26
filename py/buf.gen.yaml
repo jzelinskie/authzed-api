@@ -3,9 +3,13 @@ version: "v2"
 plugins:
   - protoc_builtin: "python"
     out: "."
+    include_imports: true
   - local: "grpc_python_plugin"
     out: "."
+    include_imports: true
   - local: "protoc-gen-mypy"
     out: "."
+    include_imports: true
   - local: "protoc-gen-mypy_grpc"
     out: "."
+    include_imports: true
